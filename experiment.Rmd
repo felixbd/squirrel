@@ -25,6 +25,8 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(readr)
+
 ```
 
 
@@ -38,9 +40,287 @@ date()
 
 
 ```{r}
-
 dir("data")
+```
+
+
+```{r}
+
+
+# 1. Park Data
+parks <- read_csv(
+  "./data/park-data.csv",
+  col_types = cols(
+    .default = col_guess(),
+    # ... = col_skip(),
+    `Area Name` = col_factor(),  # levels = c("Upper Manhattan", "Central Manhattan", "Lower Manhattan", "Brooklyn")),
+    `Area ID` = col_factor(levels = c("A", "B", "C", "D")),
+    `Park Name` = col_character(),
+    `Park ID` = col_character(),  # keep as character because of 13.1 and 13.2
+    Date = col_date(format = "%m/%d/%y"),
+    `Start Time` = col_time(format = "%I:%M:%S %p"),  # 12-hour format with AM/PM
+    `End Time` = col_time(format = "%I:%M:%S %p"),
+    `Total Time` = col_double(),
+    `Park Conditions` = col_character(),
+    `Other Animal Sightings` = col_character(),
+    Litter = col_character(),
+    `Temperature & Weather` = col_character(),
+    `Number of Squirrels` = col_integer(),
+    `Squirrel Sighter(s)` = col_character(),
+    `Number of Sighters` = col_integer()
+  )
+)
+
+
+# 2. Squirrel Data
+squirrels <- read_csv(
+  "./data/squirrel-data.csv",
+  name_repair = "minimal",
+  # check.names = FALSE,
+  col_types = cols(
+    `Area Name` = col_factor(),  # levels = c("Upper Manhattan", "Central Manhattan", "Lower Manhattan", "Brooklyn")),
+    `Area ID` = col_factor(levels = c("A", "B", "C", "D")),
+    `Park Name` = col_character(),
+    `Park ID` = col_character(),
+    `Squirrel ID` = col_character(),
+    `Primary Fur Color` = col_factor(levels = c("Gray", "Cinnamon", "Black")),
+    `Highlights in Fur Color` = col_character(),
+    `Color Notes` = col_character(),
+    Location = col_character(),
+    `Above Ground (Height in Feet)` = col_double(),
+    `Specific Location` = col_character(),
+    Activities = col_character(),
+    `Interactions with Humans` = col_character(),
+    `Other Notes or Observations` = col_character(),
+    `Squirrel Latitude (X)` = col_double(),
+    `Squirrel Longitude (Y)` = col_double()
+  )
+)
+
+names(squirrels)[names(squirrels) == "Squirrel Latitude (DD.DDDDDD)"] <- "Squirrel Latitude (X)"
+names(squirrels)[names(squirrels) == "Squirrel Longitude (-DD.DDDDDD)"] <- "Squirrel Longitude (Y)"
+
+
+# 3. Stories
+stories <- read_csv(
+  "./data/stories.csv",
+  col_types = cols(
+    `Area Name` = col_factor(),  # levels = c("Upper Manhattan", "Central Manhattan", "Lower Manhattan", "Brooklyn")),
+    `Area ID` = col_factor(levels = c("A", "B", "C", "D")),
+    `Park Name` = col_character(),
+    `Park ID` = col_character(),
+    `Squirrels, Parks & The City Stories` = col_character()
+  )
+)
+
+
+
+
+# show_col_types = FALSE,
+# col_select = -1,  # drop the first col
+
+# .. = col_factor(
+#   include_na = TRUE,
+#   levels = c("partial", "full"),
+#   ordered = TRUE,
+# ),
+
+
+# df |> View()
+# df |> describe()
+# df |> class()
+# df |> dim()
+# df |> spec()
+# df |> summary()
+# df |> head(5)
+# df %>% select(0:26) |> summary()
+
+problems(parks)
+problems(squirrels)
+problems(stories)
+
 
 ```
+
+
+
+
+
+```{r}
+# ... |> describe()
+
+"parks"
+parks |> summary()
+
+"squirrels"
+squirrels |> summary()
+
+"stories"
+stories |> summary()
+
+
+```
+
+
+```{r}
+
+ggplot(parks, aes(x = reorder(`Park Name`, -`Number of Squirrels`), y = `Number of Squirrels`)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Squirrels Sighted per Park", x = "Park", y = "Count")
+
+
+```
+
+
+
+
+
+```{r}
+
+ggplot(parks, aes(x = `Area Name`, y = `Number of Squirrels`, fill = `Area Name`)) +
+  geom_boxplot() +
+  labs(title = "Distribution of Squirrel Sightings by Area")
+
+
+```
+
+
+
+
+```{r}
+ggplot(parks, aes(x = `Start Time`, y = `Number of Squirrels`)) +
+  geom_point() +
+  labs(title = "Start Time vs Number of Squirrels")
+
+```
+
+
+
+```{r}
+ggplot(squirrels, aes(x = `Primary Fur Color`, fill = `Primary Fur Color`)) +
+  geom_bar() +
+  labs(title = "Distribution of Primary Fur Colors", x = "Fur Color", y = "Count")
+
+```
+
+
+
+
+
+
+```{r}
+ggplot(squirrels, aes(x = `Area Name`, fill = Activities)) +
+  geom_bar(position = "fill") +
+  labs(title = "Squirrel Activities by Area", y = "Proportion")
+
+```
+
+
+
+```{r}
+ggplot(squirrels, aes(x = `Squirrel Longitude (Y)`, y = `Squirrel Latitude (X)`, color = `Primary Fur Color`)) +
+  geom_point(alpha = 0.7) +
+  labs(title = "Squirrel Sightings by Location", x = "Longitude", y = "Latitude")
+
+```
+
+
+
+
+```{r}
+library(tidytext)
+library(wordcloud)
+
+stories %>%
+  unnest_tokens(word, `Squirrels, Parks & The City Stories`) %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 3) %>%
+  with(wordcloud(word, n, max.words = 100))
+
+```
+
+
+```{r}
+ggplot(stories, aes(x = `Park Name`)) +
+  geom_bar(fill = "darkgreen") +
+  coord_flip() +
+  labs(title = "Number of Stories per Park", x = "Park", y = "Count of Stories")
+
+```
+
+
+
+
+```{r}
+library(dplyr)
+
+squirrels %>%
+  count(`Park ID`, `Primary Fur Color`) %>%
+  left_join(parks, by = "Park ID") %>%
+  ggplot(aes(x = `Park Name`, y = n, fill = `Primary Fur Color`)) +
+    geom_col() +
+    coord_flip() +
+    labs(title = "Fur Color Distribution by Park")
+
+```
+
+
+
+
+```{r}
+parks %>%
+  left_join(stories %>% count(`Park ID`), by = "Park ID") %>%
+  ggplot(aes(x = `Number of Squirrels`, y = n)) +
+    geom_point() +
+    labs(title = "Relationship Between Squirrels Sighted and Stories Recorded",
+         x = "Number of Squirrels", y = "Number of Stories")
+
+```
+
+
+
+
+```{r}
+library(ggplot2)
+library(MASS)
+
+ggplot(squirrels, aes(x = `Squirrel Longitude (Y)`, y = `Squirrel Latitude (X)`)) +
+  stat_density_2d(aes(fill = ..level..), geom = "polygon") +
+  scale_fill_viridis_c() +
+  labs(title = "Spatial Density of Squirrel Sightings")
+
+```
+
+
+```{r}
+table(squirrels$`Primary Fur Color`, squirrels$Activities) %>% chisq.test()
+
+```
+
+
+
+
+```{r}
+glm(`Number of Squirrels` ~ `Park Conditions` + Litter + `Number of Sighters`,
+    data = parks, family = poisson)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

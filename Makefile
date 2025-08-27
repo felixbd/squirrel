@@ -9,4 +9,6 @@ clean:
 l: libs
 
 libs:
-	find ./ -type f -name "*.Rmd" -exec grep  "library(" {} \; | sort -u
+	find ./ -type f -name "*.Rmd" -exec grep  "library(" {} \; | sort -u | grep -Po '(?<=^library\()(.*?)(?=\))'
+
+	@ # make l | tail -n +2 | grep -Po '(?<=^library\()(.*?)(?=\)$)'

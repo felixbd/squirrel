@@ -3,12 +3,10 @@
 
 # rmarkdown::render("final.Rmd", output_format = "md_document")
 # rmarkdown::render("final.Rmd", output_format = "html_document")
-
-Sys.setlocale("LC_ALL", "de_DE.UTF-8")   # works on Linux/macOS
-
+# Sys.setlocale("LC_ALL", "de_DE.UTF-8")   # works on Linux/macOS
 
 rmarkdown::render(
-  "final.Rmd",
+  "experiment.Rmd",
   output_format = rmarkdown::html_document(
     toc = TRUE,
     number_sections = TRUE
