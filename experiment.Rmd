@@ -1,0 +1,46 @@
+---
+title: "experiment"
+output: html_document
+
+params:
+  tibble_max: 50
+---
+
+
+```{r setup, include=FALSE}
+# options(tibble.print_max = 50)
+options(tibble.print_max = params$tibble_max)
+options(tibble.width = Inf)
+options(encoding = "UTF-8")
+```
+
+
+
+```{r}
+date()
+
+library(tidyverse)
+library(psych)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+
+
+```{r}
+date()
+```
+
+
+
+
+
+```{r}
+
+dir("data")
+
+```
+
+
